@@ -1,0 +1,277 @@
+DTI PREDICTION PLATFORM - COMPLETE FILE STRUCTURE
+================================================
+
+dti-prediction-platform/
+│
+├── 📄 DOCUMENTATION
+│   ├── INDEX.md                      # Documentation index (start here!)
+│   ├── README.md                     # Main project documentation
+│   ├── QUICKSTART.md                 # Quick start guide (5 steps)
+│   ├── INSTALLATION_GUIDE.md         # Detailed installation instructions
+│   ├── ARCHITECTURE.md               # System architecture & design
+│   ├── PROJECT_SUMMARY.md            # Complete implementation summary
+│   ├── CHECKLIST.md                  # Setup verification checklist
+│   └── FILE_STRUCTURE.txt            # This file
+│
+├── 🔧 SETUP & UTILITY SCRIPTS
+│   ├── setup.py                      # Automated setup script
+│   ├── test_installation.py          # Installation verification
+│   ├── run_preprocessing.py          # Quick data preprocessing
+│   ├── run_training.py               # Quick model training
+│   └── run_backend.py                # Quick backend startup
+│
+├── 📦 CONFIGURATION FILES
+│   ├── requirements.txt              # Python dependencies
+│   ├── .gitignore                    # Git ignore patterns
+│   ├── docker-compose.yml            # Docker orchestration
+│   ├── Dockerfile.backend            # Backend Docker image
+│   └── Dockerfile.frontend           # Frontend Docker image
+│
+├── 🧬 DATA PROCESSING MODULE
+│   └── data/
+│       ├── __init__.py               # Package marker
+│       ├── preprocess.py             # BindingDB preprocessing
+│       │   ├── BindingDBParser       # Parse TSV file
+│       │   ├── AffinityProcessor     # Standardize affinity values
+│       │   └── DataSplitter          # Create train/val/test splits
+│       │
+│       └── dataset.py                # PyTorch Dataset
+│           └── DTIDataset            # Drug-target interaction dataset
+│
+├── 🤖 DEEP LEARNING MODELS
+│   └── models/
+│       ├── __init__.py               # Package marker
+│       │
+│       ├── encoders.py               # Molecular encoders
+│       │   ├── DrugEncoder           # SMILES → embedding (MolBERT)
+│       │   └── ProteinEncoder        # Sequence → embedding (ProtBERT)
+│       │
+│       ├── attention.py              # Co-attention mechanism
+│       │   └── CoAttentionModule     # Cross-modal attention
+│       │
+│       ├── evidential.py             # Uncertainty quantification
+│       │   ├── EvidentialRegressionHead  # Prediction with uncertainty
+│       │   └── EvidentialLoss        # Evidential loss function
+│       │
+│       └── dti_model.py              # Complete DTI model
+│           └── DTIModel              # End-to-end model
+│
+├── 🎓 TRAINING PIPELINE
+│   └── training/
+│       ├── __init__.py               # Package marker
+│       └── train.py                  # Training implementation
+│           └── Trainer               # Training loop & validation
+│
+├── 🔌 BACKEND API
+│   └── backend/
+│       ├── __init__.py               # Package marker
+│       └── main.py                   # FastAPI application
+│           ├── FastAPI app           # Web framework
+│           ├── ModelService          # Model inference service
+│           ├── POST /predict         # Prediction endpoint
+│           └── GET /health           # Health check endpoint
+│
+├── 🎨 FRONTEND APPLICATION
+│   └── frontend/
+│       ├── package.json              # Node.js dependencies
+│       ├── tsconfig.json             # TypeScript configuration
+│       ├── tsconfig.node.json        # TypeScript node config
+│       ├── vite.config.ts            # Vite build configuration
+│       ├── index.html                # HTML template
+│       │
+│       └── src/
+│           ├── main.tsx              # Application entry point
+│           ├── index.css             # Global styles
+│           │
+│           └── App.tsx               # Main application component
+│               ├── State management  # React state
+│               ├── InputForm         # SMILES & sequence inputs
+│               ├── ResultsView       # Prediction results
+│               └── AttentionViz      # Attention visualization
+│
+├── 📊 DATA DIRECTORY (Generated)
+│   └── data/
+│       └── processed/                # Preprocessed data
+│           ├── train.csv             # Training set
+│           ├── val.csv               # Validation set
+│           └── test.csv              # Test set
+│
+├── 💾 MODEL CHECKPOINTS (Generated)
+│   └── checkpoints/
+│       └── best_model.pt             # Trained model weights
+│
+├── 📝 LOGS (Generated)
+│   └── logs/
+│       └── *.log                     # Application logs
+│
+└── 📁 INPUT DATA
+    └── BindingDB_All_202511_tsv/
+        └── BindingDB_All.tsv         # BindingDB dataset
+
+================================================================================
+FILE COUNTS
+================================================================================
+
+Documentation:        8 files
+Setup Scripts:        5 files
+Configuration:        5 files
+Data Processing:      2 Python files
+Models:              5 Python files
+Training:            1 Python file
+Backend:             1 Python file
+Frontend:            7 files (TS/TSX/HTML/CSS/JSON)
+---
+Total Source Files:  34 files
+
+================================================================================
+KEY DIRECTORIES
+================================================================================
+
+📂 data/              - Data processing and datasets
+📂 models/            - Deep learning model components
+📂 training/          - Training pipeline
+📂 backend/           - FastAPI backend service
+📂 frontend/          - React frontend application
+📂 checkpoints/       - Saved model weights (generated)
+📂 logs/              - Application logs (generated)
+
+================================================================================
+ENTRY POINTS
+================================================================================
+
+🚀 Setup:
+   python setup.py
+
+🧪 Test:
+   python test_installation.py
+
+📊 Preprocess:
+   python run_preprocessing.py
+
+🎓 Train:
+   python run_training.py
+
+🔌 Backend:
+   python run_backend.py
+
+🎨 Frontend:
+   cd frontend && npm run dev
+
+🐳 Docker:
+   docker-compose up --build
+
+================================================================================
+IMPORTANT FILES
+================================================================================
+
+📖 Start Here:
+   INDEX.md                  - Documentation index
+   QUICKSTART.md             - Quick start guide
+
+🔧 Core Implementation:
+   models/dti_model.py       - Complete DTI model
+   backend/main.py           - API endpoints
+   frontend/src/App.tsx      - Frontend application
+
+📚 Configuration:
+   requirements.txt          - Python dependencies
+   frontend/package.json     - Node.js dependencies
+   docker-compose.yml        - Docker setup
+
+================================================================================
+WORKFLOW
+================================================================================
+
+1. SETUP
+   └─> python setup.py
+       └─> Installs dependencies
+           └─> Creates directories
+
+2. PREPROCESS
+   └─> python run_preprocessing.py
+       └─> Loads BindingDB TSV
+           └─> Cleans & validates data
+               └─> Creates train/val/test splits
+
+3. TRAIN (Optional)
+   └─> python run_training.py
+       └─> Loads processed data
+           └─> Trains DTI model
+               └─> Saves best model
+
+4. DEPLOY
+   └─> python run_backend.py (Terminal 1)
+       └─> Loads trained model
+           └─> Starts API server
+   
+   └─> cd frontend && npm run dev (Terminal 2)
+       └─> Starts dev server
+           └─> Opens browser
+
+5. USE
+   └─> http://localhost:3000
+       └─> Enter SMILES & sequence
+           └─> Get predictions
+               └─> View results
+
+================================================================================
+TECHNOLOGY STACK
+================================================================================
+
+Backend:
+  • Python 3.9+
+  • PyTorch 2.0+
+  • Transformers (Hugging Face)
+  • FastAPI + Uvicorn
+  • RDKit
+  • Pandas, NumPy, SciPy
+
+Frontend:
+  • React 18
+  • TypeScript
+  • Vite
+  • Axios
+
+Models:
+  • MolBERT (drug encoding)
+  • ProtBERT (protein encoding)
+  • Custom co-attention
+  • Evidential regression
+
+Deployment:
+  • Docker
+  • Docker Compose
+
+================================================================================
+FEATURES IMPLEMENTED
+================================================================================
+
+✅ Multimodal drug representation (SMILES encoding)
+✅ Protein sequence encoding (ProtBERT)
+✅ Co-attention mechanism (interpretable)
+✅ Binding affinity prediction
+✅ Uncertainty quantification (evidential)
+✅ Data preprocessing pipeline
+✅ Training pipeline with metrics
+✅ FastAPI backend with validation
+✅ React frontend with examples
+✅ Docker deployment
+✅ Comprehensive documentation
+
+================================================================================
+NEXT STEPS
+================================================================================
+
+1. Follow QUICKSTART.md to get started
+2. Run setup.py to install dependencies
+3. Preprocess data with run_preprocessing.py
+4. Start backend with run_backend.py
+5. Start frontend with npm run dev
+6. Access application at http://localhost:3000
+
+For detailed instructions, see:
+  • INSTALLATION_GUIDE.md
+  • CHECKLIST.md
+  • README.md
+
+================================================================================
