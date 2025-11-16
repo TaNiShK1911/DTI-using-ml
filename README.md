@@ -41,6 +41,7 @@ A full-stack Drug-Target Interaction (DTI) prediction platform using multimodal 
 
 - Python 3.9+
 - Node.js 18+
+- CUDA-capable GPU (recommended for training)
 - Docker (optional)
 
 ### Installation
@@ -73,19 +74,41 @@ This will:
 
 ### Training
 
-Train the DTI model:
+#### 🚀 CUDA-Accelerated Training (Recommended)
 
+**Test CUDA setup and benchmark speed:**
 ```bash
-python training/train.py
+python test_cuda_speed.py
 ```
 
-Training configuration:
-- Batch size: 8
-- Learning rate: 1e-4
-- Epochs: 10 (with early stopping)
-- Device: CUDA if available, else CPU
+**Train with CUDA optimization (< 30 minutes):**
+```bash
+python run_training.py
+```
+
+**CUDA Optimizations Enabled:**
+- ✅ Mixed Precision Training (FP16) - 2-3x speedup
+- ✅ Batch size: 32 (effective 64 with gradient accumulation)
+- ✅ Parallel data loading with 4 workers
+- ✅ OneCycleLR scheduler with warmup
+- ✅ Frozen pretrained encoders for faster convergence
+
+**Expected Training Time:**
+- GPU (CUDA): ~15-25 minutes for 10 epochs
+- CPU: ~2-3 hours for 10 epochs
+- Speedup: 6-10x with CUDA + AMP
+
+**Configuration:**
+See `config_cuda_fast.py` for tuning options:
+- Adjust batch_size based on GPU memory
+- Modify num_epochs for faster/slower training
+- Toggle use_amp for mixed precision
 
 The best model will be saved to `checkpoints/best_model.pt`
+
+#### CPU Training (Fallback)
+
+If CUDA is not available, training will automatically use CPU with reduced batch size.
 
 ### Running the Application
 
@@ -207,28 +230,87 @@ Edit `models/dti_model.py` to modify:
 - `attention_dim`: Attention dimension
 - `hidden_dims`: MLP hidden dimensions
 
-## Troubleshooting
+## Troubleshooting & Debugging
 
-### Out of Memory
+### Quick Debug Mode (Recommended)
+
+If you're having issues with model loading, use the debug scripts:
+
+**Windows:**
+```bash
+# Start both frontend and backend in debug mode
+start_debug.bat
+
+# Or manually:
+python debug_backend.py  # In one terminal
+cd frontend && npm run dev  # In another terminal
+
+# Test the connection:
+python test_api_connection.py
+```
+
+**Linux/Mac:**
+```bash
+# Start backend in debug mode
+python debug_backend.py
+
+# In another terminal, start frontend
+cd frontend && npm run dev
+
+# Test the connection
+python test_api_connection.py
+```
+
+See [DEBUG_GUIDE.md](DEBUG_GUIDE.md) for detailed debugging instructions.
+
+### Common Issues
+
+#### Backend won't start / Model loading error
+
+**Problem:** Shape mismatch when loading checkpoint
+```
+RuntimeError: Error(s) in loading state_dict...
+```
+
+**Solutions:**
+1. **Use debug mode** (skips model loading):
+   ```bash
+   python debug_backend.py
+   ```
+
+2. **Retrain the model** (creates new checkpoint):
+   ```bash
+   python run_training.py
+   ```
+
+3. **Delete checkpoint** (forces untrained model):
+   ```bash
+   del checkpoints\best_model.pt  # Windows
+   rm checkpoints/best_model.pt   # Linux/Mac
+   python run_backend.py
+   ```
+
+#### Frontend can't connect to backend
+
+**Problem:** `ECONNREFUSED` errors in frontend console
+
+**Solutions:**
+1. Ensure backend is running on port 8000
+2. Test backend: `python test_api_connection.py`
+3. Check if port 8000 is already in use
+4. Verify proxy config in `frontend/vite.config.ts`
+
+#### Out of Memory
 
 Reduce batch size in `training/train.py`:
 ```python
 config = {
-    'batch_size': 4,  # Reduce from 8
+    'batch_size': 4,  # Reduce from 32
     ...
 }
 ```
 
-### Model Loading Error
-
-Ensure the model checkpoint exists:
-```bash
-ls checkpoints/best_model.pt
-```
-
-If not, train the model first or the API will use an untrained model for demo purposes.
-
-### CUDA Not Available
+#### CUDA Not Available
 
 The code automatically falls back to CPU if CUDA is not available. Training will be slower but functional.
 

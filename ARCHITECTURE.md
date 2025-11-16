@@ -11,61 +11,61 @@ The DTI Prediction Platform is a full-stack application with three main layers:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                        USER                                  │
-│                          ↓                                   │
-│                    Web Browser                               │
+│                        USER                                 │
+│                          ↓                                  │
+│                    Web Browser                              │
 └─────────────────────────────────────────────────────────────┘
                            ↓
 ┌─────────────────────────────────────────────────────────────┐
-│                   FRONTEND (React)                           │
+│                   FRONTEND (React)                          │
 │  ┌──────────────────────────────────────────────────────┐   │
 │  │  • Input Form (SMILES + Protein Sequence)            │   │
 │  │  • Results Display (Affinity + Uncertainty)          │   │
 │  │  • Attention Visualization                           │   │
 │  │  • Example Buttons                                   │   │
 │  └──────────────────────────────────────────────────────┘   │
-│                    Port: 3000                                │
+│                    Port: 3000                               │
 └─────────────────────────────────────────────────────────────┘
                            ↓ HTTP/JSON
 ┌─────────────────────────────────────────────────────────────┐
-│                   BACKEND (FastAPI)                          │
+│                   BACKEND (FastAPI)                         │
 │  ┌──────────────────────────────────────────────────────┐   │
 │  │  Endpoints:                                          │   │
 │  │  • POST /predict - Main prediction endpoint          │   │
 │  │  • GET /health - Health check                        │   │
-│  │                                                       │   │
+│  │                                                      │   │
 │  │  ModelService:                                       │   │
 │  │  • Load trained model                                │   │
 │  │  • Validate inputs                                   │   │
 │  │  • Run inference                                     │   │
 │  │  • Format response                                   │   │
 │  └──────────────────────────────────────────────────────┘   │
-│                    Port: 8000                                │
+│                    Port: 8000                               │
 └─────────────────────────────────────────────────────────────┘
                            ↓
 ┌─────────────────────────────────────────────────────────────┐
-│              DEEP LEARNING MODEL (PyTorch)                   │
+│              DEEP LEARNING MODEL (PyTorch)                  │
 │  ┌──────────────────────────────────────────────────────┐   │
 │  │                   DTIModel                           │   │
-│  │                                                       │   │
-│  │  ┌─────────────┐  ┌─────────────┐                   │   │
-│  │  │   Drug      │  │  Protein    │                   │   │
-│  │  │  Encoder    │  │  Encoder    │                   │   │
-│  │  │ (MolBERT)   │  │ (ProtBERT)  │                   │   │
-│  │  └─────────────┘  └─────────────┘                   │   │
+│  │                                                      │   │
+│  │  ┌─────────────┐  ┌─────────────┐                    │   │
+│  │  │   Drug      │  │  Protein    │                    │   │
+│  │  │  Encoder    │  │  Encoder    │                    │   │
+│  │  │ (MolBERT)   │  │ (ProtBERT)  │                    │   │
+│  │  └─────────────┘  └─────────────┘                    │   │
 │  │         ↓                ↓                           │   │
-│  │  ┌─────────────────────────────┐                    │   │
-│  │  │   Co-Attention Module       │                    │   │
-│  │  │  • Drug → Protein           │                    │   │
-│  │  │  • Protein → Drug           │                    │   │
-│  │  │  • Feature Fusion           │                    │   │
-│  │  └─────────────────────────────┘                    │   │
+│  │  ┌─────────────────────────────┐                     │   │
+│  │  │   Co-Attention Module       │                     │   │
+│  │  │  • Drug → Protein           │                     │   │
+│  │  │  • Protein → Drug           │                     │   │
+│  │  │  • Feature Fusion           │                     │   │
+│  │  └─────────────────────────────┘                     │   │
 │  │                ↓                                     │   │
-│  │  ┌─────────────────────────────┐                    │   │
-│  │  │ Evidential Regression Head  │                    │   │
-│  │  │  • Affinity Prediction      │                    │   │
-│  │  │  • Uncertainty Estimation   │                    │   │
-│  │  └─────────────────────────────┘                    │   │
+│  │  ┌─────────────────────────────┐                     │   │
+│  │  │ Evidential Regression Head  │                     │   │
+│  │  │  • Affinity Prediction      │                     │   │
+│  │  │  • Uncertainty Estimation   │                     │   │
+│  │  └─────────────────────────────┘                     │   │
 │  └──────────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────────┘
 ```

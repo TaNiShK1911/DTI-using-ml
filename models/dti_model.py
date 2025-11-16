@@ -81,12 +81,24 @@ class DTIModel(nn.Module):
         print(f"Model saved to {path}")
     
     @classmethod
-    def load(cls, path: str, device: str = 'cpu'):
+    def load(cls, path: str, device: str = 'cpu', strict: bool = True):
         """Load model from checkpoint."""
-        checkpoint = torch.load(path, map_location=device)
-        model = cls(config=checkpoint['config'])
-        model.load_state_dict(checkpoint['model_state_dict'])
+        checkpoint = torch.load(path, map_location=device, weights_only=False)
+        config = checkpoint.get('config', None)
+        model = cls(config=config)
+        
+        try:
+            model.load_state_dict(checkpoint['model_state_dict'], strict=strict)
+            print(f"Model loaded from {path}")
+        except RuntimeError as e:
+            if strict:
+                print(f"Warning: Strict loading failed: {e}")
+                print("Retrying with strict=False...")
+                model.load_state_dict(checkpoint['model_state_dict'], strict=False)
+                print(f"Model partially loaded from {path}")
+            else:
+                raise
+        
         model.to(device)
         model.eval()
-        print(f"Model loaded from {path}")
         return model

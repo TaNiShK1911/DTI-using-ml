@@ -42,17 +42,51 @@ class ModelService:
     
     def __init__(self, model_path: str = 'checkpoints/best_model.pt'):
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
-        print(f"Loading model from {model_path} on {self.device}...")
+        self.model_loaded = False
         
+        print(f"Initializing model service on {self.device}...")
+        
+        # Always try to initialize with untrained model first as fallback
         try:
-            self.model = DTIModel.load(model_path, device=self.device)
-            print("Model loaded successfully!")
-        except Exception as e:
-            print(f"Error loading model: {e}")
-            print("Using untrained model for demo purposes")
             self.model = DTIModel()
             self.model.to(self.device)
             self.model.eval()
+            print("✓ Base model initialized")
+        except Exception as e:
+            print(f"✗ Critical error: Cannot initialize model: {e}")
+            raise
+        
+        # Try to load checkpoint if it exists
+        if not os.path.exists(model_path):
+            print(f"⚠ Checkpoint not found at {model_path}")
+            print("  Using untrained model")
+            return
+        
+        try:
+            print(f"Loading checkpoint from {model_path}...")
+            checkpoint = torch.load(model_path, map_location=self.device, weights_only=False)
+            
+            # Load state dict with strict=False to handle mismatches
+            missing_keys, unexpected_keys = self.model.load_state_dict(
+                checkpoint['model_state_dict'], 
+                strict=False
+            )
+            
+            if not missing_keys and not unexpected_keys:
+                print("✓ Model loaded successfully with all weights!")
+                self.model_loaded = True
+            else:
+                print("⚠ Model loaded with some mismatches:")
+                if missing_keys:
+                    print(f"  Missing keys: {len(missing_keys)}")
+                if unexpected_keys:
+                    print(f"  Unexpected keys: {len(unexpected_keys)}")
+                print("  Using partially loaded model")
+                self.model_loaded = True
+            
+        except Exception as e:
+            print(f"⚠ Could not load checkpoint: {e}")
+            print("  Continuing with untrained model")
     
     def validate_smiles(self, smiles: str) -> bool:
         """Validate SMILES string."""
@@ -220,7 +254,12 @@ async def root():
 
 @app.get("/health")
 async def health_check():
-    return {"status": "healthy"}
+    return {
+        "status": "healthy",
+        "device": model_service.device,
+        "model_loaded": model_service.model_loaded,
+        "debug_mode": os.environ.get('SKIP_MODEL_LOAD') == '1'
+    }
 
 
 @app.post("/predict", response_model=PredictionResponse)

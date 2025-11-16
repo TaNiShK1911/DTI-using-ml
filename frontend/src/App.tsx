@@ -53,12 +53,22 @@ interface PredictionResult {
 }
 
 const EXAMPLES = {
-  aspirin: {
-    smiles: 'CC(=O)Oc1ccccc1C(=O)O',
-    sequence: 'MKKFFDSRREQGGSGLGSGSSGGGGSTSGLGSGYIGRVFGIGRQQVTVDEVLAEGGFAIVFLVRTSNGMKCALKRMFVNNEHDLQVCKREIQIMRDLSGHKNIVGYIDSSINNVSSGDVWEVLILMDFCRGGQVVNLMNQRLQTGFTENEVLQIFCDTCEAVARLHQCKTPIIHRDLKVENILLHDRGHYVLCDFGSATNKFQNPQTEGVNAVEDEIKKYTTLSYRAPEMVNLYSGKIITTKADIWALGCLLYKLCYFTLPFGESQVAICDGNFTIPDNSRYSQDMHCLIRYMLEPDPDKRPDIYQVSYFSFKLLKKECPIPNVQNSPIPAKLPEPVKASEAAAKKTQPKARLTDPIPTTETSIAPRQRPKAGQTQPNQAQGSGQPTTPTGQEKPSPHSTLPQPKTQGLAKDAWEIPRESLRLEVKLGQGCFGEVWMGTWNGTTRVAIKTLKPGTMSPEAFLQEAQVMKKLRHEKLVQLYAVVSEEPIYIVTEYMSKGSLLDFLKGETGKYLRLPQLVDMAAQIASGMAYVERMNYVHRDLRAANILVGENLVCKVADFGLARLIEDNEYTARQGAKFPIKWTAPEAALYGRFTIKSDVWSFGILLTELTTKGRVPYPGMVNREVLDQVERGYRMPCPPECPESLHDLMCQCWRKEPEERPTFEYLQAFLEDYFTSTEPQYQPGENL'
+  strong: {
+    name: 'Strong Binding',
+    description: 'Imatinib (Gleevec) + BCR-ABL Kinase',
+    smiles: 'CN1CCN(CC1)Cc2ccc(cc2)C(=O)Nc3ccc(c(c3)Nc4nccc(n4)c5cccnc5)C',
+    sequence: 'MGQQPGKVLGDQRRPSLPALHFIKGAGKKESSRHGGPHCNVFVEHEALQRPVASDFEPQGLSEAARWNSKENLLAGPSENDPNLFVALYDFVASGDNTLSITKGEKLRVLGYNHNGEWCEAQTKNGQGWVPSNYITPVNSLEKHSWYHGPVSRNAAEYLLSSGINGSFLVRESESSPGQRSISLRYEGRVYHYRINTASDGKLYVSSESRFNTLAELVHHHSTVADGLITTLHYPAPKRNKPTVYGVSPNYDKWEMERTDITMKHKLGGGQYGEVYEGVWKKYSLTVAVKTLKEDTMEVEEFLKEAAVMKEIKHPNLVQLLGVCTREPPFYIITEFMTYGNLLDYLRECNRQEVNAVVLLYMATQISSAMEYLEKKNFIHRDLAARNCLVGENHLVKVADFGLSRLMTGDTYTAHAGAKFPIKWTAPESLAYNKFSIKSDVWAFGVLLWEIATYGMSPYPGIDLSQVYELLEKDYRMERPEGCPEKVYELMRACWQWNPSDRPSFAEIHQAFETMFQESSISDEVEKELGKQGVRGAVSTLLQAPELPTKTRTSRRAAEHRDTTDVPEMPHSKGQGESDPLDHEPAVSPLLPRKERGPPEGGLNEDERLLPKDKKTNLFSALIKKKKKTAPTPPKRSSSFREMDGQPERRGAGEEEGRDISNGALAFTPLDTADPAKSPKPSNGAGVPNGALRESGGSGFRSPHLWKKSSTLTSSRLATGEEEGGGSSSKRFLRSCSASCVPHGAKDTEWRSVTLPRDLQSTGRQFDSSTFGGHKSEKPALPRKRAGENRSDQVTRGTVTPPPRLVKKNEEAADEVFKDIMESSPGSSPPNLTPKPLRRQVTVAPASGLPHKEEAGKGSALGTPAAAEPVTPTSKAGSGAPGGTSKGPAEESRVRRHKHSSESPGRDKGKLSRLKPAPPPPPAASAGKAGGKPSQSPSQEAAGEAVLGAKTKATSLVDAVNSDAAKPSQPGEGLKKPVLPATPKPQSAKPSGTPISPAPVPSTLPSASSALAGDQPSSTAFIPLISTRVSLRKTRQPPERIASGAITKGVVLDSTEALCLAISRNSEQMASHSAVLEAGKNLYTFCVSYVDSIQQMRNKFAFREAINKLENNLRELQICPATAGSGPAATQDFSKLLSSVKEISDIVQR'
   },
-  ibuprofen: {
-    smiles: 'CC(C)Cc1ccc(cc1)C(C)C(=O)O',
+  weak: {
+    name: 'Weak Binding',
+    description: 'Caffeine + Random Protein',
+    smiles: 'CN1C=NC2=C1C(=O)N(C(=O)N2C)C',
+    sequence: 'MTEYKLVVVGAGGVGKSALTIQLIQNHFVDEYDPTIEDSYRKQVVIDGETCLLDILDTAGQEEYSAMRDQYMRTGEGFLCVFAINNTKSFEDIHHYREQIKRVKDSEDVPMVLVGNKCDLPARTVETRQAQDLARSYGIPFIETSAKTRQGVDDAFYTLVREIRKHKEKMSKDGKKKKKKSKTKCVIM'
+  },
+  moderate: {
+    name: 'Moderate Binding',
+    description: 'Aspirin + COX-2',
+    smiles: 'CC(=O)Oc1ccccc1C(=O)O',
     sequence: 'MLARALLLCAVLALSHTANPCCSHPCQNRGVCMSVGFDQYKCDCTRTGFYGENCSTPEFLTRIKLFLKPTPNTVHYILTHFKGFWNVVNNIPFLRNAIMSYVLTSRSHLIDSPPTYNADYGYKSWEAFSNLSYYTRALPPVPDDCPTPLGVKGKKQLPDSNEIVEKLLLRRKFIPD'
   }
 }
@@ -83,7 +93,11 @@ function App() {
       })
       setResult(response.data)
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'An error occurred during prediction')
+      if (err.code === 'ERR_NETWORK' || err.message.includes('Network Error')) {
+        setError('Cannot connect to backend server. Please ensure the backend is running on http://localhost:8000')
+      } else {
+        setError(err.response?.data?.detail || 'An error occurred during prediction')
+      }
     } finally {
       setLoading(false)
     }
@@ -139,16 +153,26 @@ function App() {
           <button
             type="button"
             className="example-button"
-            onClick={() => loadExample('aspirin')}
+            onClick={() => loadExample('strong')}
+            title={EXAMPLES.strong.description}
           >
-            Aspirin + COX-2
+            {EXAMPLES.strong.name}
           </button>
           <button
             type="button"
             className="example-button"
-            onClick={() => loadExample('ibuprofen')}
+            onClick={() => loadExample('moderate')}
+            title={EXAMPLES.moderate.description}
           >
-            Ibuprofen + COX-1
+            {EXAMPLES.moderate.name}
+          </button>
+          <button
+            type="button"
+            className="example-button"
+            onClick={() => loadExample('weak')}
+            title={EXAMPLES.weak.description}
+          >
+            {EXAMPLES.weak.name}
           </button>
         </div>
       </div>
@@ -173,20 +197,6 @@ function App() {
               <span className="metric-label">Binding Affinity (pKi/pKd/pIC50)</span>
               <span className="metric-value">{result.affinity.toFixed(2)}</span>
             </div>
-
-            <div className="metric">
-              <span className="metric-label">Uncertainty Score</span>
-              <span className="metric-value">{result.uncertainty.toFixed(3)}</span>
-            </div>
-
-            <div className="metric">
-              <span className="metric-label">Confidence Level</span>
-              <span
-                className={`confidence-badge confidence-${result.confidence_level.toLowerCase()}`}
-              >
-                {result.confidence_level}
-              </span>
-            </div>
           </div>
 
           <div className="detailed-explanation">
@@ -201,58 +211,7 @@ function App() {
               </div>
             </div>
 
-            <div className="explanation-section">
-              <h4>📊 Uncertainty Breakdown</h4>
-              <div className="explanation-content">
-                <p><strong>Confidence:</strong> {result.detailed_explanation.uncertainty_breakdown.confidence_description}</p>
-                <div className="uncertainty-details">
-                  <div className="uncertainty-item">
-                    <span>Epistemic (Model) Uncertainty:</span>
-                    <span>{result.detailed_explanation.uncertainty_breakdown.epistemic_uncertainty.toFixed(3)}</span>
-                  </div>
-                  <div className="uncertainty-item">
-                    <span>Aleatoric (Data) Uncertainty:</span>
-                    <span>{result.detailed_explanation.uncertainty_breakdown.aleatoric_uncertainty.toFixed(3)}</span>
-                  </div>
-                  <div className="uncertainty-item total">
-                    <span>Total Uncertainty:</span>
-                    <span>{result.detailed_explanation.uncertainty_breakdown.total_uncertainty.toFixed(3)}</span>
-                  </div>
-                </div>
-                <div className="uncertainty-explanations">
-                  <p><em>Epistemic:</em> {result.detailed_explanation.uncertainty_breakdown.explanation.epistemic}</p>
-                  <p><em>Aleatoric:</em> {result.detailed_explanation.uncertainty_breakdown.explanation.aleatoric}</p>
-                </div>
-              </div>
-            </div>
 
-            <div className="explanation-section">
-              <h4>🔬 Evidential Parameters</h4>
-              <div className="explanation-content">
-                <div className="parameter-grid">
-                  <div className="parameter-item">
-                    <span>γ (Gamma):</span>
-                    <span>{result.detailed_explanation.evidential_parameters.gamma.toFixed(4)}</span>
-                    <small>{result.detailed_explanation.evidential_parameters.parameter_meanings.gamma}</small>
-                  </div>
-                  <div className="parameter-item">
-                    <span>ν (Nu):</span>
-                    <span>{result.detailed_explanation.evidential_parameters.nu.toFixed(4)}</span>
-                    <small>{result.detailed_explanation.evidential_parameters.parameter_meanings.nu}</small>
-                  </div>
-                  <div className="parameter-item">
-                    <span>α (Alpha):</span>
-                    <span>{result.detailed_explanation.evidential_parameters.alpha.toFixed(4)}</span>
-                    <small>{result.detailed_explanation.evidential_parameters.parameter_meanings.alpha}</small>
-                  </div>
-                  <div className="parameter-item">
-                    <span>β (Beta):</span>
-                    <span>{result.detailed_explanation.evidential_parameters.beta.toFixed(4)}</span>
-                    <small>{result.detailed_explanation.evidential_parameters.parameter_meanings.beta}</small>
-                  </div>
-                </div>
-              </div>
-            </div>
 
             <div className="explanation-section">
               <h4>📈 Input Analysis</h4>
@@ -281,47 +240,7 @@ function App() {
             </div>
           </div>
 
-          <div className="attention-visualization">
-            <h3>🔍 Attention Visualization</h3>
-            <div className="attention-info">
-              <p><strong>Shape:</strong> {result.detailed_explanation.attention_analysis.attention_shape}</p>
-              <p><strong>Range:</strong> {result.detailed_explanation.attention_analysis.min_attention.toFixed(4)} - {result.detailed_explanation.attention_analysis.max_attention.toFixed(4)}</p>
-              <p><em>{result.detailed_explanation.attention_analysis.interpretation}</em></p>
-            </div>
-            
-            <div className="attention-heatmap">
-              {result.attention_weights && result.attention_weights.length > 0 ? (
-                <div className="heatmap-container">
-                  <div className="heatmap-grid">
-                    {result.attention_weights.map((row, i) => (
-                      <div key={i} className="heatmap-row">
-                        {row.map((weight, j) => (
-                          <div
-                            key={j}
-                            className="heatmap-cell"
-                            style={{
-                              backgroundColor: `rgba(102, 126, 234, ${weight})`,
-                              opacity: 0.3 + weight * 0.7
-                            }}
-                            title={`Attention: ${weight.toFixed(4)}`}
-                          >
-                            {weight.toFixed(3)}
-                          </div>
-                        ))}
-                      </div>
-                    ))}
-                  </div>
-                  <div className="heatmap-legend">
-                    <span>Low</span>
-                    <div className="legend-gradient"></div>
-                    <span>High</span>
-                  </div>
-                </div>
-              ) : (
-                <p className="no-attention">No attention weights available</p>
-              )}
-            </div>
-          </div>
+
         </div>
       )}
     </div>

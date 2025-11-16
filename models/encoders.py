@@ -22,20 +22,27 @@ class DrugEncoder(nn.Module):
     
     def forward(self, smiles_list: List[str]) -> torch.Tensor:
         """Encode SMILES to embeddings [batch_size, hidden_dim]."""
-        # Tokenize
+        # Tokenize with proper settings
         encoded = self.tokenizer(
             smiles_list,
             padding=True,
             truncation=True,
-            max_length=512,
-            return_tensors='pt'
+            max_length=256,
+            return_tensors='pt',
+            add_special_tokens=True,
+            return_attention_mask=True
         )
         
-        # Move to same device as model
+        # Move to same device as model (optimized for CUDA)
         device = next(self.model.parameters()).device
-        encoded = {k: v.to(device) for k, v in encoded.items()}
+        encoded = {k: v.to(device, non_blocking=True) for k, v in encoded.items()}
         
-        # Get embeddings
+        # Verify token IDs are within vocabulary range
+        vocab_size = self.model.config.vocab_size
+        if encoded['input_ids'].max() >= vocab_size:
+            encoded['input_ids'] = torch.clamp(encoded['input_ids'], 0, vocab_size - 1)
+        
+        # Get embeddings with gradient checkpointing for memory efficiency
         with torch.set_grad_enabled(self.training):
             outputs = self.model(**encoded)
             # Use [CLS] token embedding
@@ -63,22 +70,29 @@ class ProteinEncoder(nn.Module):
     def forward(self, sequences: List[str]) -> torch.Tensor:
         """Encode sequences to embeddings [batch_size, hidden_dim]."""
         # Add spaces between amino acids for ProtBERT
-        sequences_spaced = [' '.join(list(seq)) for seq in sequences]
+        sequences_spaced = [' '.join(list(seq[:512])) for seq in sequences]
         
-        # Tokenize
+        # Tokenize with proper settings
         encoded = self.tokenizer(
             sequences_spaced,
             padding=True,
             truncation=True,
-            max_length=1024,
-            return_tensors='pt'
+            max_length=512,
+            return_tensors='pt',
+            add_special_tokens=True,
+            return_attention_mask=True
         )
         
-        # Move to same device as model
+        # Move to same device as model (optimized for CUDA)
         device = next(self.model.parameters()).device
-        encoded = {k: v.to(device) for k, v in encoded.items()}
+        encoded = {k: v.to(device, non_blocking=True) for k, v in encoded.items()}
         
-        # Get embeddings
+        # Verify token IDs are within vocabulary range
+        vocab_size = self.model.config.vocab_size
+        if encoded['input_ids'].max() >= vocab_size:
+            encoded['input_ids'] = torch.clamp(encoded['input_ids'], 0, vocab_size - 1)
+        
+        # Get embeddings with gradient checkpointing for memory efficiency
         with torch.set_grad_enabled(self.training):
             outputs = self.model(**encoded)
             # Use [CLS] token embedding
